@@ -1,0 +1,104 @@
+# Pohjana käytetty: https://community.home-assistant.io/t/mitsubishi-melcloud-integration-with-home-assistant/26275
+  - platform: rest
+    name: vilp_api
+    resource: !secret MelCloud_resource
+    method: GET
+    headers:
+      X-MitsContextKey: !secret MelCloud_ContextKey
+    value_template: "OK"
+    scan_interval: 2592000 #Päivitetään API manuaalisesti 30 päivän välein, muuten hoidetaan automaatiolla kello 02:00:00
+    json_attributes_path: !secret MelCloud_jsonAttr
+    json_attributes:
+      - CurrentEnergyConsumed
+      - DailyHeatingEnergyConsumed
+      - DailyHotWaterEnergyConsumed
+      - DailyEnergyConsumedDate
+
+  - platform: template
+    sensors:
+      vilp_power:
+        friendly_name: "VILP Virta"
+        # availability_template: "{{ is_state('sensor.vilp_api', 'OK') }}"
+        availability_template: >-
+          {{ (states("sensor.vilp_api") not in ["unknown", "unavailable"]) and (state_attr('sensor.vilp_api', 'CurrentEnergyConsumed') != None) }}
+        value_template: "{{ state_attr('sensor.vilp_api', 'CurrentEnergyConsumed') }}"
+        device_class: power
+        unit_of_measurement: "kW"
+        unique_id: 47a9373e-9a5b-11ed-a8fc-0242ac120002
+      vilp_heating_energy_consumed:
+        friendly_name: "VILP Lämmitys"
+        # availability_template: "{{ is_state('sensor.vilp_api', 'OK') }}"
+        availability_template: >-
+          {{ (states("sensor.vilp_api") not in ["unknown", "unavailable"]) and (state_attr('sensor.vilp_api', 'DailyHeatingEnergyConsumed') != None) }}
+        value_template: "{{ state_attr('sensor.vilp_api', 'DailyHeatingEnergyConsumed') }}"
+        device_class: energy
+        unit_of_measurement: "kWh"
+        unique_id: e3e031cc-9a59-11ed-a8fc-0242ac120002
+      vilp_hot_water_energy_consumed:
+        friendly_name: "VILP Käyttövesi"
+        # availability_template: "{{ is_state('sensor.vilp_api', 'OK') }}"
+        availability_template: >-
+          {{ (states("sensor.vilp_api") not in ["unknown", "unavailable"]) and (state_attr('sensor.vilp_api', 'DailyHotWaterEnergyConsumed') != None) }}
+        value_template: "{{ state_attr('sensor.vilp_api', 'DailyHotWaterEnergyConsumed') }}"
+        device_class: energy
+        unit_of_measurement: "kWh"
+        unique_id: e3e03406-9a59-11ed-a8fc-0242ac120002
+      vilp_energy_consumed:
+        friendly_name: "VILP Kulutus"
+        availability_template: >-
+          {{ (states("sensor.vilp_api") not in ["unknown", "unavailable"]) and
+          ((state_attr('sensor.vilp_api', 'DailyHotWaterEnergyConsumed') != None) or
+          (state_attr('sensor.vilp_api', 'DailyHeatingEnergyConsumed') != None) )}}
+        value_template: "{{ state_attr('sensor.vilp_api', 'DailyHeatingEnergyConsumed') + state_attr('sensor.vilp_api', 'DailyHotWaterEnergyConsumed') }}"
+        device_class: energy
+        unit_of_measurement: "kWh"
+        unique_id: e3e02f10-9a59-11ed-a8fc-0242ac120002
+
+# ILP Kulutusmittarit
+  - platform: template
+    scan_interval: 10
+    sensors:
+      ilp_voltage:
+        value_template: "{{ states.switch.ilmalampopumppu.attributes.voltage }}"
+        unit_of_measurement: 'V'
+        unique_id: 7e37d8dc-a12c-11ed-a8fc-0242ac120002
+        device_class: voltage
+      ilp_current:
+        value_template: "{{ states.switch.ilmalampopumppu.attributes.current }}"
+        unit_of_measurement: 'mA'
+        unique_id: 7e37dc2e-a12c-11ed-a8fc-0242ac120002
+        device_class: current
+      ilp_current_consumption:
+         value_template: "{{ states.switch.ilmalampopumppu.attributes.current_consumption }}"
+         unit_of_measurement: 'W'
+         unique_id: 7e37e354-a12c-11ed-a8fc-0242ac120002
+         device_class: power
+             
+    # Autokatoksen Kulutusmittarit
+  - platform: template
+    scan_interval: 10
+    sensors:
+      autokatoksen_pistorasia_voltage:
+        value_template: "{{ states.switch.autokatoksen_pistorasia.attributes.voltage }}"
+        unit_of_measurement: "V"
+        unique_id: 2369830e-a12e-11ed-a8fc-0242ac120002
+        device_class: voltage
+      autokatoksen_pistorasia_current:
+        value_template: "{{ states.switch.autokatoksen_pistorasia.attributes.current }}"
+        unit_of_measurement: "mA"
+        unique_id: 236985d4-a12e-11ed-a8fc-0242ac120002
+        device_class: current
+      autokatoksen_pistorasia_current_consumption:
+        value_template: "{{ states.switch.autokatoksen_pistorasia.attributes.current_consumption }}"
+        unit_of_measurement: "W"
+        unique_id: 23698980-a12e-11ed-a8fc-0242ac120002
+        device_class: power
+
+## Outside temperature median value from yesterday
+  - platform: statistics
+    name: "Ulkolämpötila - Keskiarvo - 24h"
+    entity_id: sensor.pannuhuone_outside_temperature
+    state_characteristic: average_linear
+    precision: 1
+    max_age:
+      hours: 24

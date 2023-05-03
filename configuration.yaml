@@ -1,0 +1,81 @@
+# Configure a default setup of Home Assistant (frontend, api, etc)
+default_config:
+
+# Text to speech
+tts:
+  - platform: google_translate
+
+# Custom Entries Here:
+# Home Assistant Default Entries #
+homeassistant:
+  customize: !include customize.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+automation: !include automations.yaml
+sensor: !include sensors.yaml
+
+# Add binary sensor for holidays and working days
+binary_sensor:
+  - platform: workday
+    country: FI
+    add_holidays:
+
+# Define groups
+group:
+  perhe:
+    name: Perhe
+    entities:
+      - !secret person1
+      - !secret person2
+
+# Add customizations:
+ffmpeg:
+
+frontend:
+ extra_module_url:
+ - /config/www/community/lovelace-card-mod/card-mod.js
+ themes: !include_dir_merge_named themes
+
+# OTA Update directory for manual updates
+zha:
+  zigpy_config:
+    ota:
+      otau_directory: /config/zigpy_ota
+
+#Telegram Bot Config
+telegram_bot:
+  - platform: polling
+    api_key: !secret TG_API_KEY
+    allowed_chat_ids:
+      - !secret TG_group_chat_ID
+      - !secret TG_personal_chat_ID
+      
+notify:
+  - platform: telegram
+    name: !secret TelegramGroup
+    chat_id: !secret TG_group_chat_ID
+
+  - platform: telegram
+    name: !secret TelegramBot
+    chat_id: !secret TG_personal_chat_ID
+
+## Utility meters for VILP
+utility_meter:
+  vilp_daily_energy_consumed:
+    source: sensor.vilp_energy_consumed
+    name: VILP Päivittäinen Energiankulutus (MelCloud)
+    unique_id: c415d710-9a5f-11ed-a8fc-0242ac120002
+    cycle: daily
+    delta_values: true
+  vilp_daily_heating_energy_consumed:
+    source: sensor.vilp_heating_energy_consumed
+    name: VILP Päivittäinen Lämmitys (MelCloud)
+    unique_id: c415da58-9a5f-11ed-a8fc-0242ac120002
+    cycle: daily
+    delta_values: true
+  vilp_daily_hot_water_energy_consumed:
+    source: sensor.vilp_hot_water_energy_consumed
+    name: VILP Päivittäinen Käyttövesi (MelCloud)
+    unique_id: c415e142-9a5f-11ed-a8fc-0242ac120002
+    cycle: daily
+    delta_values: true
