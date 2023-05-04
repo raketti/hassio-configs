@@ -15,10 +15,11 @@ automation: !include automations.yaml
 sensor: !include sensors.yaml
 
 # Add binary sensor for holidays and working days
-binary_sensor:
-  - platform: workday
-    country: FI
-    add_holidays:
+# Added as an integration via UI on 2023.05
+# binary_sensor:
+#   - platform: workday
+#     country: FI
+#     add_holidays:
 
 # Define groups
 group:
