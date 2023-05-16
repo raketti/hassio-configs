@@ -98,6 +98,7 @@
   - platform: statistics
     name: "Ulkolämpötila - Keskiarvo"
     entity_id: sensor.pannuhuone_outside_temperature
+    unique_id: 5f1d2d2c-8c01-4a27-ab3d-907a9ca1986d
     state_characteristic: average_linear
     precision: 1
     max_age:
