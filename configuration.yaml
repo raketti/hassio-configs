@@ -14,12 +14,8 @@ scene: !include scenes.yaml
 automation: !include automations.yaml
 sensor: !include sensors.yaml
 
-# Add binary sensor for holidays and working days
-# Added as an integration via UI on 2023.05
-# binary_sensor:
-#   - platform: workday
-#     country: FI
-#     add_holidays:
+# Add python script support
+python_script:
 
 # Define groups
 group:
