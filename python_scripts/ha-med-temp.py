@@ -9,28 +9,44 @@
 
 #service: python_script.ha_med_temp
 #data:
-#  entity_id: <entity_id_from_HA>
+#  entity_id: <entity_id_from_HA> - for the temperature sensor
+#  mobile_id: <entity_id_from_HA> - for notified mobile
+#  output_id: <entity_id_from_HA> - sensor to calculate median temperature
 
-# We could hard code the Entity ID for this since we only use it now for the ATW Heat Pump (Entity ID: sensor.vilp_melcloud_outside_temperature)
+# Idea for mobile notification from: https://github.com/custom-components/pyscript/issues/274
 
+# Get the needed data from the Entity
 inputEntity = data.get('entity_id')
 inputStateObject = hass.states.get(inputEntity)
 inputState = inputStateObject.state
 
-if inputEntity is None:
-  logger.warning("===== entity_id is required if you want to set something.")
-else:
-  logger.warning("===== Got Entity ID: %s", inputEntity)
-  
-if inputState is None:
-  logger.warning("===== Fail - inputState: %s", inputState)
-else:
-  logger.warning("===== Success - inputState: %s", inputState)
+# Define the mobile to notify
+inputMobile = data.get('mobile_id')
 
-if inputStateObject is None:
-  logger.warning("===== Fail - inputStateObject: %s", inputStateObject)
-else:
-  logger.warning("===== Success - inputStateObject: %s", inputStateObject)
+# Get the output entity
+outputEntity = data.get('output_id')
+
+def get_temperature():
+  if inputEntity is None:
+    # Send a notification on error - and create a log entry
+    hass.services.call('notify', inputMobile, {'title' : "Pyscript: Temp", 'message': "Didn't get entity_id from Service Call!"})
+    logger.warning("===== entity_id is required if you want to set something.")
+  
+  elif inputState is None:
+    # Send a notification on error - and create a log entry
+    hass.services.call('notify', inputMobile, {'title' : "Pyscript: Temp", 'message': "Didn't get inputState from inputEntity!"})
+    logger.warning("===== Fail - inputState: %s", inputState)
+
+  elif inputStateObject is None:
+    # Send a notification on error - and create a log entry
+    hass.services.call('notify', inputMobile, {'title' : "Pyscript: Temp", 'message': "Didn't get inputStateObject from inputState!"})
+    logger.warning("===== Fail - inputStateObject: %s", inputStateObject)
+get_temperature()
+
+def set_temperature():
+# Set the temperature value to a sensor
+  hass.states.set(outputEntity, inputState)
+set_temperature()
 
 """
 Now we get the correct value from entity_id.state

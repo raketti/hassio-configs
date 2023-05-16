@@ -3,6 +3,16 @@ Idea is to calculate the median temperature for the past week
 
 ## Get the current temperature once an hour
 - [x] Getting the current outside temperature from ATW Heat Pump sensor
+
+  - Use service call:
+  ```
+  service: python_script.ha_med_temp
+  data:
+    entity_id: sensor.vilp_melcloud_outside_temperature
+    mobile_id: mobile_app_gargamel
+    output_id: sensor.pannuhuone_outside_temperature
+  ```
+
 - [ ] Create sample size h = 24 / d = 7
 - This will be done by running the script once an hour and writing the data to a) sensor b) file
 - Two options for the median value sensor:
@@ -12,13 +22,13 @@ Idea is to calculate the median temperature for the past week
     - Example:
 
   ```
-  sensor:
-    - platform: statistics
-      name: "Outside temperature mean over last 7 days"
-      entity_id: sensor.atw_heat_pump_temperature
-      state_characteristic: mean
-      max_age:
-        days: 7
+  - platform: statistics
+    name: "Ulkolämpötila - Keskiarvo"
+    entity_id: sensor.pannuhuone_outside_temperature
+    state_characteristic: average_linear
+    precision: 1
+    max_age:
+      days: 7
   ```
 
  - [ ] b) Calculate the mean/median/average within the Python script
@@ -29,7 +39,7 @@ Idea is to calculate the median temperature for the past week
 
 - [ ] Read median value from sensor
 ```
-  sensor.atw_heat_pump_temperature
+  sensor.sensor.pannuhuone_outside_temperature
 ```
 
 - [ ] Use an automation to control the Target Heating Temperature
