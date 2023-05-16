@@ -95,10 +95,11 @@
         device_class: power
 
 ## Outside temperature median value from yesterday
-  - platform: statistics
-    name: "Ulkolämpötila - Keskiarvo - 24h"
-    entity_id: sensor.pannuhuone_outside_temperature
-    state_characteristic: average_linear
-    precision: 1
-    max_age:
-      hours: 24
+  - platform: template
+    sensors:
+      name: "Ulkolämpötila - Keskiarvo"
+      entity_id: sensor.pannuhuone_outside_temperature
+      state_characteristic: average_linear
+      precision: 1
+      max_age:
+        days: 7
