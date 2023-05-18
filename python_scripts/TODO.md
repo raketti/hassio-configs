@@ -51,8 +51,16 @@ Idea is to calculate the median temperature for the past week
 ### Plan B (Not as lightweight solution as the Plan A - then again, more training! 👍 🤓)
   - Use the random_generator.py
   - [ ] Install InnoluxDB Add-on to Home Assistant
-  - [ ] Save the temperature state to DB
-  - [ ] Read the temperature from latest to ```sampleSize```
+  - [x] Save the current temperature to DB
+  - [ ] Read the temperature from InfluxDB
   - [ ] Calculate the average temperature within the Python script
-  - [ ] Save the average value to HA sensor
+  - [ ] Save the average value to HA sensor -> gets saved to SQLite
+  - [ ] Use an automation to control the Target Heating Temperature
+
+### Plan C (The middel way so to speak)
+  - [ ] Check if SQLite DB is available for read in Home Assistant
+  - [x] Save the current temperature to DB
+  - [ ] Read the temperature from SQLite
+  - [ ] Calculate the average temperature within the Python script
+  - [ ] Save the average value to HA sensor -> gets saved to SQLite
   - [ ] Use an automation to control the Target Heating Temperature
