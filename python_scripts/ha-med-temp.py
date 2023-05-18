@@ -20,6 +20,13 @@ inputEntity = data.get('entity_id')
 inputStateObject = hass.states.get(inputEntity)
 inputState = inputStateObject.state
 
+# Set variables
+outputFile = "<config>/python_scripts/temp_data.txt"
+h = 24              # Hours
+d = 7               # Days
+sampleSize = h * d  # Calculate the sample size
+avg_str = 0
+
 # Define the mobile to notify
 inputMobile = data.get('mobile_id')
 
@@ -29,28 +36,89 @@ outputEntity = data.get('output_id')
 def get_temperature():
   if inputEntity is None:
     # Send a notification on error - and create a log entry
-    hass.services.call('notify', inputMobile, {'title' : "Pyscript: Temp", 'message': "Didn't get entity_id from Service Call!"})
     logger.warning("===== entity_id is required if you want to set something.")
   
   elif inputState is None:
     # Send a notification on error - and create a log entry
-    hass.services.call('notify', inputMobile, {'title' : "Pyscript: Temp", 'message': "Didn't get inputState from inputEntity!"})
     logger.warning("===== Fail - inputState: %s", inputState)
 
   elif inputStateObject is None:
     # Send a notification on error - and create a log entry
-    hass.services.call('notify', inputMobile, {'title' : "Pyscript: Temp", 'message': "Didn't get inputStateObject from inputState!"})
     logger.warning("===== Fail - inputStateObject: %s", inputStateObject)
 get_temperature()
 
+def save_temp_data():
+
+  f = open(outputFile, 'a')
+  f.write(inputState + "\n")
+  f.close()
+
+save_temp_data()
+
+def removeFirstLine():
+
+# Count the number of lines
+  with open(outputFile, 'r') as lc:
+    line_count = sum(1 for line in lc)
+
+# If we have enough samples, we remove the first entry
+  if line_count >= sampleSize:
+    with open(outputFile, 'r+') as fr:
+      
+        # read an store all lines into list
+        lines = fr.readlines()
+        
+        # move file pointer to the beginning of a file
+        fr.seek(0)
+        
+        # truncate the file
+        fr.truncate()
+
+        # start writing lines except the first line
+        fr.writelines(lines[1:])
+  else:
+    print("Not enough samples, sample size:", line_count, "Required:", sampleSize)
+    logger.warning("===== Fail - Not enough samples, sample size: %s", line_count, "Required: %s", sampleSize)
+
+removeFirstLine()
+
+def calculateAverage():
+  # Initiate lists
+  str_list = []
+  int_list = []
+  
+  # Count the number of lines
+  with open(outputFile, 'r') as lc:
+    line_count = sum(1 for line in lc)
+
+  # Get the values to a list  
+  with open(outputFile) as f:
+    str_list = [line for line in f]
+
+  # remove new line characters
+  with open(outputFile) as f:
+    str_list = [line.rstrip() for line in f]
+
+  # Convert string to int
+  for x in str_list:
+    int_list.append(int(x))
+
+  # Calculate the average from the samples
+  sumOfNums = 0
+  count = 0
+  for number in int_list:
+    sumOfNums += number
+    count += 1
+    average_temp = sumOfNums / count
+
+  # Round the number to two digits
+  avg_rounded = round(average_temp, 2)
+  
+  # Convert to a string for Home Assistant
+  avg_str = str(avg_rounded)
+calculateAverage()
+
 def set_temperature():
 # Set the temperature value to a sensor
-  hass.states.set(outputEntity, inputState)
+  hass.states.set(outputEntity, avg_str)
 set_temperature()
-
-"""
-Now we get the correct value from entity_id.state
-Problem: HA doesn't support writing to a file (permission issue)
-
-We need a solution to store long term (7 days running) data to calculate the median value of those
-"""
